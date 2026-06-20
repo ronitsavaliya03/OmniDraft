@@ -353,7 +353,7 @@ let isProcessing = false;
 
 async function promptWithTimeout(session, prompt, timeoutMs) {
     const controller = new AbortController();
-    const timeoutReason = new DOMException('InlineRewrite: generation timed out', 'TimeoutError');
+    const timeoutReason = new DOMException('OmniDraft: generation timed out', 'TimeoutError');
 
     // Race the model call against a plain timer. This protects the UI
     // (the badge/preview will always resolve within timeoutMs) even on
@@ -569,7 +569,7 @@ document.addEventListener('keydown', async function (event) {
         applyAndRememberUndo(activeElement, improved);
         hideBadge();
     } catch (error) {
-        console.error('InlineRewrite Error:', error);
+        console.error('OmniDraft Error:', error);
         showBadge(`⚠️ ${describeError(error)}`);
         aiSession = null; // force fresh session next time in case it's the cause
         setTimeout(hideBadge, 3000);

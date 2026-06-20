@@ -19,7 +19,7 @@
   ],
   "action": {
     "default_popup": "settings.html",
-    "default_title": "InlineRewrite settings"
+    "default_title": "OmniDraft settings"
   },
   "icons": {
     "16": "icons/icon16.png",
