@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+    body {
+        width: 280px;
+        margin: 0;
+        padding: 16px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        color: #1a1a1a;
+    }
+    h1 {
+        font-size: 14px;
+        margin: 0 0 12px;
+    }
+    label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        color: #555;
+        margin: 14px 0 6px;
+    }
+    select, input[type="number"] {
+        width: 100%;
+        padding: 6px 8px;
+        border-radius: 6px;
+        border: 1px solid #ddd;
+        font-size: 13px;
+        box-sizing: border-box;
+    }
+    .row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 14px 0 4px;
+    }
+    .row label { margin: 0; }
+    .hint {
+        font-size: 11px;
+        color: #999;
+        margin-top: 4px;
+        line-height: 1.4;
+    }
+    .shortcuts {
+        margin-top: 16px;
+        padding-top: 12px;
+        border-top: 1px solid #eee;
+        font-size: 11px;
+        color: #777;
+        line-height: 1.6;
+    }
+    kbd {
+        background: #f1f1f1;
+        border-radius: 4px;
+        padding: 1px 5px;
+        font-family: monospace;
+    }
+    #status {
+        font-size: 11px;
+        color: #4f8cff;
+        height: 14px;
+        margin-top: 10px;
+    }
+</style>
+</head>
+<body>
+    <h1>InlineRewrite settings</h1>
+
+    <label for="tone">Tone mode</label>
+    <select id="tone">
+        <option value="auto">Auto-detect by site</option>
+        <option value="professional">Always professional</option>
+        <option value="casual">Always casual</option>
+        <option value="concise">Always concise</option>
+        <option value="ai-prompt">Always AI-prompt mode</option>
+    </select>
+    <div class="hint">Auto-detect adjusts tone for email (professional), chat apps (casual), and AI tools like ChatGPT/Claude (preserves directness instead of "polishing").</div>
+
+    <label for="previewMod">Preview modifier key</label>
+    <select id="previewMod">
+        <option value="alt">Alt</option>
+        <option value="meta">Cmd / Win</option>
+    </select>
+    <div class="hint">Hold this key with the shortcut to preview before applying. Without it, the rewrite applies instantly.</div>
+
+    <div class="row">
+        <label for="sensitive" style="margin:0;">Allow on pages with password/card fields</label>
+    </div>
+    <input type="checkbox" id="sensitive" style="width:auto;">
+    <div class="hint">Off by default to avoid sending nearby page text as context on sensitive pages.</div>
+
+    <label for="timeout">Timeout (seconds)</label>
+    <input type="number" id="timeout" min="3" max="60" step="1">
+
+    <div class="shortcuts">
+        <div><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Y</kbd> — rewrite instantly</div>
+        <div>+ modifier above — preview first</div>
+        <div><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd> — undo last rewrite</div>
+    </div>
+
+    <div id="status"></div>
+
+    <script src="settings.js"></script>
+</body>
+</html>

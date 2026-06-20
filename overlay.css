@@ -1,0 +1,139 @@
+/* ---------- Status badge ---------- */
+#privacy-prompt-badge {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 2147483647; /* max safe z-index, sits above host page UI */
+    background: #1f1f1f;
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    pointer-events: none;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+#privacy-prompt-badge.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.privacy-prompt-spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: privacy-prompt-spin 0.8s linear infinite;
+    flex-shrink: 0;
+}
+
+@keyframes privacy-prompt-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ---------- Preview popup (fixes issue #5) ---------- */
+#privacy-prompt-preview {
+    position: fixed;
+    z-index: 2147483647;
+    max-width: 480px;
+    min-width: 320px;
+    background: #fff;
+    color: #1a1a1a;
+    border-radius: 12px;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(0,0,0,0.06);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 13px;
+    overflow: hidden;
+    opacity: 0;
+    transform: scale(0.97);
+    transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+#privacy-prompt-preview.visible {
+    opacity: 1;
+    transform: scale(1);
+}
+
+#privacy-prompt-preview .ppp-header {
+    padding: 10px 14px;
+    font-weight: 600;
+    font-size: 12px;
+    color: #555;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#privacy-prompt-preview .ppp-mode-badge {
+    font-size: 11px;
+    font-weight: 500;
+    color: #4f8cff;
+    background: #eef3ff;
+    padding: 2px 8px;
+    border-radius: 100px;
+}
+
+#privacy-prompt-preview .ppp-body {
+    padding: 12px 14px;
+    max-height: 220px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    line-height: 1.5;
+    border-bottom: 1px solid #eee;
+}
+
+#privacy-prompt-preview .ppp-body.ppp-loading {
+    color: #999;
+    font-style: italic;
+}
+
+#privacy-prompt-preview .ppp-actions {
+    display: flex;
+    gap: 8px;
+    padding: 10px 14px;
+}
+
+#privacy-prompt-preview button {
+    flex: 1;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+#privacy-prompt-preview .ppp-accept {
+    background: #4f8cff;
+    color: #fff;
+}
+#privacy-prompt-preview .ppp-accept:hover { background: #3d77e6; }
+
+#privacy-prompt-preview .ppp-regenerate {
+    background: #f1f1f1;
+    color: #333;
+}
+#privacy-prompt-preview .ppp-regenerate:hover { background: #e4e4e4; }
+
+#privacy-prompt-preview .ppp-cancel {
+    background: transparent;
+    color: #888;
+    flex: 0 0 auto;
+}
+#privacy-prompt-preview .ppp-cancel:hover { color: #444; }
+
+#privacy-prompt-preview .ppp-hint {
+    padding: 0 14px 10px;
+    font-size: 11px;
+    color: #aaa;
+}
