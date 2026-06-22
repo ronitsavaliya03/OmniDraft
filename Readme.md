@@ -8,6 +8,12 @@ server.
 This README assumes no prior knowledge of browser extensions or developer
 tools. Follow the steps in order.
 
+## ⚠️ Prerequisites
+Because this extension runs a raw LLM directly on your hardware, your system must meet the following requirements:
+1. **Google Chrome:** Version 127 or higher.
+2. **Hardware:** At least 8GB of RAM and 4GB of free storage space (for the AI model weights).
+3. **Chrome Flags:** You must enable Chrome's experimental AI features (see setup below).
+
 ## 🚀 Installation & Setup
 
 ### Step 1: Enable Chrome's built-in local AI
