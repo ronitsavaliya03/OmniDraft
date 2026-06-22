@@ -140,6 +140,19 @@ function buildSystemPrompt(mode) {
 // ISSUE #4 FIX (context grab) — cheap, scoped read, no full-page layout.
 // ISSUE #4 (sensitive data) — basic heuristic to avoid scraping near
 // password fields / common payment-form patterns.
+// ISSUE #10 FIX (this was previously incomplete): on AI chat sites,
+// detectSiteMode() correctly returns 'ai-prompt' and changes the SYSTEM
+// PROMPT tone, but getNearbyContext() ignored mode entirely and grabbed
+// raw textContent from the conversation panel — which includes the
+// assistant's own prior replies. That meant the rewriter could pick up
+// and start mimicking the AI's voice/phrasing instead of the user's own,
+// exactly the contamination issue #10 was supposed to prevent.
+//
+// Fix: getNearbyContext() now takes `mode`. When mode is 'ai-prompt', it
+// uses site-specific selectors to collect ONLY the user's own previous
+// turns and explicitly excludes assistant turns, rather than walking up
+// the DOM blindly. Falls back to the generic ancestor-walk for every
+// other site/mode, where role separation isn't relevant.
 // =========================================================================
 function pageLooksSensitive() {
     if (settings.enabledOnSensitiveSites) return false;
@@ -148,8 +161,63 @@ function pageLooksSensitive() {
     );
 }
 
-function getNearbyContext(activeElement, maxChars) {
+// Site-specific selectors for the user's own message turns. Each entry
+// matches *only* elements containing the human's previous messages, never
+// the assistant's — verified against each site's current DOM structure
+// (data-message-author-role on ChatGPT, data-testid on Claude, etc).
+// These are inherently brittle since they depend on each site's markup
+// and will need updates if a site redesigns its DOM.
+const AI_CHAT_USER_MESSAGE_SELECTORS = {
+    'chatgpt.com': '[data-message-author-role="user"]',
+    'chat.openai.com': '[data-message-author-role="user"]',
+    'claude.ai': '[data-testid="user-message"]',
+    'gemini.google.com': '.query-text, [data-test-id="user-query"]',
+    'perplexity.ai': '[data-testid="user-message"]',
+};
+
+function matchedAiChatSelector() {
+    const host = window.location.hostname.replace(/^www\./, '');
+    for (const [domain, selector] of Object.entries(AI_CHAT_USER_MESSAGE_SELECTORS)) {
+        if (host === domain || host.endsWith('.' + domain)) return selector;
+    }
+    return null;
+}
+
+// Collects only the user's own prior turns on a known AI chat site.
+// Returns null if the site isn't in our selector map (caller decides
+// what to do — currently: send no context rather than risk grabbing
+// the assistant's replies). Returns '' if the site IS recognized but
+// no user turns were found yet (e.g. a brand new conversation).
+function getUserOnlyContext(maxChars) {
+    const selector = matchedAiChatSelector();
+    if (!selector) return null; // unrecognized AI-chat-like site; caller falls back
+
+    const userTurns = Array.from(document.querySelectorAll(selector))
+        .map((el) => (el.textContent || '').trim())
+        .filter(Boolean);
+
+    if (userTurns.length === 0) return '';
+
+    const text = userTurns.join('\n---\n').replace(/[ \t]+/g, ' ').trim();
+    return text.slice(-maxChars);
+}
+
+function getNearbyContext(activeElement, maxChars, mode) {
     if (pageLooksSensitive()) return '';
+
+    if (mode === 'ai-prompt') {
+        const userOnly = getUserOnlyContext(maxChars);
+        if (userOnly !== null) return userOnly;
+
+        // We know this is an AI-chat site (mode is only 'ai-prompt' if
+        // detectSiteMode() matched AI_CHAT_HOSTS) but we don't have a
+        // selector for it in AI_CHAT_USER_MESSAGE_SELECTORS yet. Falling
+        // through to the generic walk-and-grab below would silently
+        // reintroduce the exact contamination this mode exists to avoid
+        // (pulling in the assistant's own replies as "context"). Safer
+        // to send no context at all than wrong context.
+        return '';
+    }
 
     let container = activeElement;
     let hops = 0;
@@ -555,7 +623,7 @@ document.addEventListener('keydown', async function (event) {
 
     const mode = resolveMode();
     const wantsPreview = modifierHeld(event);
-    const context = getNearbyContext(activeElement, settings.contextChars);
+    const context = getNearbyContext(activeElement, settings.contextChars, mode);
 
     if (wantsPreview) {
         showPreview(activeElement, mode, () => generateRewrite(extraction.draft, context, mode));

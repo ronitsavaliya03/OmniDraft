@@ -8,12 +8,6 @@ server.
 This README assumes no prior knowledge of browser extensions or developer
 tools. Follow the steps in order.
 
-## ⚠️ Prerequisites
-Because this extension runs a raw LLM directly on your hardware, your system must meet the following requirements:
-1. **Google Chrome:** Version 127 or higher.
-2. **Hardware:** At least 8GB of RAM and 4GB of free storage space (for the AI model weights).
-3. **Chrome Flags:** You must enable Chrome's experimental AI features (see setup below).
-
 ## 🚀 Installation & Setup
 
 ### Step 1: Enable Chrome's built-in local AI
@@ -180,7 +174,7 @@ mechanism and where to find it in the code.
 | 7 | Always rewrites whole field, never just selection | `getDraftAndRange()` detects an active selection (via `selectionStart/End` for inputs, `window.getSelection()` for contentEditable) and rewrites only that range | content.js |
 | 8 | No visual cue on which field is targeted | Considered, then removed — an always-on outline on every focused field was distracting and made typing feel constrained. The corner badge (shown only during an actual rewrite) is the only visual feedback now. | overlay.css, content.js |
 | 9 | "Professional polish" hurts LLM prompt quality | `ai-prompt` mode in the system prompt explicitly preserves directness/specificity instead of formalizing | `buildSystemPrompt()` |
-| 10 | Context contamination from AI's own replies | Same site-mode detection narrows what context is used/how it's framed on AI chat domains | `detectSiteMode()` |
+| 10 | Context contamination from AI's own replies | `getNearbyContext()` now takes the resolved `mode` and, on AI-chat sites, uses per-site selectors (`AI_CHAT_USER_MESSAGE_SELECTORS`) to collect only the user's own prior turns — assistant turns are never included. If a recognized AI-chat host has no selector entry yet, context is sent empty rather than risk pulling in the assistant's replies. | `getNearbyContext()`, `getUserOnlyContext()` |
 | 11 | Cold-start latency on first use per page | Session is pre-warmed on first `focusin` into any valid field, not on first keypress | `focusin` listener → `getOrCreateSession()` |
 | 12 | No cap on oversized drafts | `MAX_DRAFT_CHARS` guard throws a clear error before hitting the model's real context ceiling | `generateRewrite()` |
 
@@ -194,6 +188,14 @@ mechanism and where to find it in the code.
 - **AI-chat-domain detection** is allowlist-based (`AI_CHAT_HOSTS`). It
   won't recognize self-hosted or unlisted AI chat UIs automatically —
   the tone-override setting is the manual fallback for those.
+- **User-message selectors** (`AI_CHAT_USER_MESSAGE_SELECTORS`) are
+  tied to each site's current DOM structure and will break silently if
+  a site redesigns its markup — at that point `getUserOnlyContext()`
+  just won't find any matches and context falls back to empty (not to
+  unfiltered text, which would reintroduce the contamination bug). Two
+  hosts in `AI_CHAT_HOSTS` (`poe.com`, `copilot.microsoft.com`) don't
+  have selectors yet, so they currently get tone-only mode with no page
+  context at all until selectors are added for them.
 - **`execCommand`** is technically a legacy API in some specs, but it
   remains the most broadly compatible way to insert text such that
   framework editors observe it correctly; the fallback path covers
